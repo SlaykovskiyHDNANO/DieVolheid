@@ -1,9 +1,19 @@
 #include <QCoreApplication>
 #include "base.h"
 
+void test1();
+void test2();
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+    test2();
+    return a.exec();
+}
+
+
+void test2()
+{
     Layer* l1 = new Layer("12345" , QVector<TimeSpan*>(), QVector<Layer*>(0), 0, "root", "im a root");
     Layer* l2 = new Layer("123456" , QVector<TimeSpan*>(), QVector<Layer*>(0), 0, "son", "im a son");
     l1->AddSublayer(l2);
@@ -17,7 +27,6 @@ int main(int argc, char *argv[])
     l1->Serialize(ob, 2, Layer::HEAVY_SERIALIZATION);
     Layer* l = new Layer();
     l->Deserialize(ob, 2, Layer::HEAVY_DESERIALIZATION);
-    return a.exec();
 }
 
 void test1()

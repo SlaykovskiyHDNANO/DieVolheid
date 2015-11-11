@@ -4,16 +4,55 @@
 #include <QString>
 #include <QDateTime>
 #include <QObject>
+#include <QMultiMap>
 #include <QJsonObject>
+#include <QTime>
 
 typedef QString idType;
 
 class TimeSpan;
+class Layer;
+idType idGenerate();
+
+class LayerAssistant : public QObject
+{
+    Q_OBJECT
+
+    Layer *node;
+
+    QMap <idType, Layer*> recursiveLayersMap;
+    QMap <idType, TimeSpan*> recursiveTimeSpanMap;
+
+    qint64 maxDepth;
+
+    void recursiveDataGet (Layer* layer);
+    void recursiveDepthCount (Layer* layer);
+    void DepthCount (Layer* layer);
+
+    LayerAssistant(const LayerAssistant&);
+    LayerAssistant& operator= (const LayerAssistant&);
+public:
+    LayerAssistant(Layer* Node);
+    void Recount();
+    void Repick();
+    qint64 GetMaxDepth();
+    void AddLayer(Layer* layer);
+    void AddTimeSpan(TimeSpan* ts);
+    void DeleteLayer(idType id);
+    void DeleteTimeSpan(idType id);
+    Layer* GetLayer (idType id);
+    TimeSpan* GetTimeSpan (idType id);
+    QVector<Layer*> GetAllLayers ();
+    QVector<TimeSpan*> GetAllTimeSpans ();
+    //void Serialize  (QJsonObject &jsOb);
+    //void Deserialize  (QJsonObject &jsOb);
+};
 
 class Layer : public QObject//слой
 {
     Q_OBJECT
 
+    friend class LayerAssistant;
     //Q_PROPERTY(idType idProp READ GetID WRITE SetID)
     //Q_PROPERTY(QString titleProp READ GetTitle WRITE SetTitle)
     //Q_PROPERTY(QString descriptionProp READ GetDescription WRITE SetDescription)
@@ -24,8 +63,11 @@ class Layer : public QObject//слой
     QVector <Layer*>    sublayers;//подслои
     QString             title;//заголовок
     QString             description;//описание
+    //qint64              maxDepth;//глубина поддерева слоев
+    LayerAssistant*       assistant;//доп. информация о слое, подслоях, элементах
 
-    void wideSublayersWalk(QVector<Layer *> &watchedLayers, int curDepth);
+    void straightSublayersWalk(QVector<Layer *> &watchedLayers, int curDepth);
+    void reverseSublayersWalk(QVector<Layer *> &watchedLayers, int curDepth);
     void lightLayerSerialization(QJsonObject &jsOb);
     void lightLayerDeserialization(QJsonObject &jsOb);
     void heavyLayerSerialization(QJsonObject &jsOb);
@@ -34,10 +76,15 @@ class Layer : public QObject//слой
     void lightRecursiveLayerDeserialization(QJsonObject &jsOb, int curDepth);
     void heavyRecursiveLayerSerialization(QJsonObject &jsOb, int curDepth);
     void heavyRecursiveLayerDeserialization(QJsonObject &jsOb, int curDepth);
+    Layer* GetRoot(QVector<Layer*>& trace);
+
+
+    Layer(const Layer&);
+    Layer& operator= (const Layer&);
 public:
     Layer ();
     Layer (idType Id, QVector<TimeSpan*> Intervals,QVector <Layer*> Sublayers, Layer* parentLayer,
-           QString Title, QString Description);
+           QString Title, QString Description/*, LayerAssistant* Assistant*/);
 
     idType          GetID();//Получить id
     QString            GetTitle();// Получить заголовок
@@ -121,6 +168,7 @@ public:
     void SetDescription(QString NewDescription);//  Сделать значением описания NewDescription
     void SetStart(QDateTime NewStart);//  Сделать значением начала отрезка NewStart
     void SetEnd(QDateTime NewEnd);    //  Сделать значением конца отрезка NewEnd
+    void SetLayers(QVector <Layer*> Layers);// Получить, связанные с промежутком слои
 
     void AddLayer  (idType Id);//Добавить слой c id, равныи Id.
     void AddLayer  (Layer* NewLayer);//Добавить слой NewLayer

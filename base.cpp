@@ -5,6 +5,21 @@
 #include <QJsonArray>
 
 /*********************************************
+idGenerate
+**********************************************/
+idType idGenerate()
+{
+    QTime t(0, 0, 0);
+    qsrand(t.secsTo(QTime::currentTime()));
+    idType id;
+    for (int i = 0; i < 10; ++i)
+    {
+        int tmp = qrand() % 255;
+        id.append( (char)tmp );
+    }
+}
+
+/*********************************************
 Timespan
 **********************************************/
 
@@ -78,6 +93,11 @@ void TimeSpan::SetEnd(QDateTime NewEnd)
     this->end = NewEnd;
 }
 
+void TimeSpan::SetLayers(QVector<Layer *> Layers)
+{
+    this->layers = Layers;
+}
+
 void TimeSpan::AddLayer(idType Id)
 {
 
@@ -85,7 +105,7 @@ void TimeSpan::AddLayer(idType Id)
 
 void TimeSpan::AddLayer(Layer *NewLayer)
 {
-
+    layers.append(NewLayer);
 }
 
 void TimeSpan::AddLayers(QVector<idType> LayersId)
@@ -205,14 +225,25 @@ void Event::Deserialize(QJsonObject &jsOb)
 Layer
 **********************************************/
 
-void Layer::wideSublayersWalk(QVector<Layer *> &watchedLayers, int curDepth)
+void Layer::straightSublayersWalk(QVector<Layer *> &watchedLayers, int curDepth)
 {
     watchedLayers.append(this);
     if (curDepth <= 0)
         return;
     foreach (Layer* l, sublayers) {
-        l->wideSublayersWalk(watchedLayers, curDepth - 1);
+        l->straightSublayersWalk(watchedLayers, curDepth - 1);
     }
+}
+
+void Layer::reverseSublayersWalk(QVector<Layer *> &watchedLayers, int curDepth)
+{
+    if (curDepth <= 0)
+        watchedLayers.append(this);
+        return;
+    foreach (Layer* l, sublayers) {
+        l->straightSublayersWalk(watchedLayers, curDepth - 1);
+    }
+    watchedLayers.append(this);
 }
 
 void Layer::lightLayerSerialization(QJsonObject &jsOb)
@@ -220,6 +251,7 @@ void Layer::lightLayerSerialization(QJsonObject &jsOb)
     jsOb["id"] = GetID();
     jsOb["title"] = GetTitle();
     jsOb["description"] = GetDescription();
+
 }
 
 void Layer::lightLayerDeserialization(QJsonObject &jsOb)
@@ -289,6 +321,7 @@ void Layer::lightRecursiveLayerDeserialization(QJsonObject &jsOb, int curDepth)
         Layer *l = new Layer();
         l->lightRecursiveLayerDeserialization(ob, curDepth - 1);
         sublayers.append(l);
+        l->SetParentLayer(this);
     }
 }
 
@@ -320,12 +353,24 @@ void Layer::heavyRecursiveLayerDeserialization(QJsonObject &jsOb, int curDepth)
         Layer *l = new Layer();
         l->heavyRecursiveLayerDeserialization(ob, curDepth - 1);
         sublayers.append(l);
+        l->SetParentLayer(this);
     }
 }
 
-Layer::Layer()
+Layer *Layer::GetRoot(QVector<Layer *> &trace)
 {
+    Layer* tmp = this;
+    while(tmp->ParentLayer)
+    {
+        trace.append(tmp);
+        tmp = tmp->ParentLayer;
+    }
+    return tmp;
+}
 
+Layer::Layer() : ParentLayer(0)
+{
+    assistant = new LayerAssistant(this);
 }
 
 Layer::Layer(idType Id, QVector<TimeSpan *> Intervals, QVector<Layer *> Sublayers, Layer *parentLayer, QString Title, QString Description):
@@ -335,6 +380,7 @@ Layer::Layer(idType Id, QVector<TimeSpan *> Intervals, QVector<Layer *> Sublayer
     SetParentLayer(parentLayer);
     SetTitle(Title);
     SetDescription(Description);
+    assistant = new LayerAssistant(this);
 }
 
 idType Layer::GetID()
@@ -360,13 +406,13 @@ Layer *Layer::GetParrentLayer()
 QVector<Layer *> Layer::GetSublayers(int MaxDepth)
 {
     QVector<Layer *> watcherLayers;
-    wideSublayersWalk(watcherLayers, MaxDepth);
+    straightSublayersWalk(watcherLayers, MaxDepth);
     return watcherLayers;
 }
 
 QVector<TimeSpan *> Layer::GetAllIntervals()
 {
-
+    return assistant->GetAllTimeSpans();
 }
 
 void Layer::SetID(idType id)
@@ -389,21 +435,104 @@ void Layer::SetParentLayer(Layer *NewParent)
     this->ParentLayer = NewParent;
 }
 
+void Layer::SetParentLayer(idType Id)
+{
+    this->ParentLayer = assistant->GetLayer(Id);
+}
+
+void Layer::AddInterval(idType Id)
+{
+    QVector<Layer*> trace;
+    Layer* root = GetRoot(trace);
+    TimeSpan* curSpn = root->assistant->GetTimeSpan(Id);
+    if (curSpn)
+    {
+        foreach (Layer* layer, trace) {
+            if(!layer->intervals.contains(layer->assistant->GetTimeSpan(Id)))
+            {
+                //layer->intervals.append(curSpn);
+                layer->assistant->AddTimeSpan(curSpn);
+            }//if
+        }//foreach
+        intervals.append(curSpn);
+        curSpn->AddLayer(this);
+    }//if
+}//fnc
+
 void Layer::AddInterval(TimeSpan *Interval)
 {
-    intervals.append(Interval);
+    QVector<Layer*> trace;
+    Layer* root = GetRoot(trace);
+    if(!root->assistant->GetTimeSpan(Interval->GetID()))
+        root->assistant->AddTimeSpan(Interval);
+    AddInterval(Interval->GetID());
+}
+
+void Layer::NewInterval(QDateTime Start, QDateTime End, QString IntervalTitle, QString IntervalDescription)
+{
+    TimeSpan *pts = new TimeSpan(idGenerate(), QVector<Layer*>(0), Start, End, IntervalTitle, IntervalDescription);
+    AddInterval(pts);
+}
+
+void Layer::AddIntervals(QVector<idType> IntervalsId)
+{
+    foreach (idType id, IntervalsId) {
+        AddInterval(id);
+    }
+}
+
+void Layer::AddIntervals(QVector<TimeSpan *> IntervalsPtr)
+{
+    foreach (TimeSpan* pts, IntervalsPtr) {
+        AddInterval(pts);
+    }
+}
+
+void Layer::AddSublayer(idType Id)
+{
+    QVector<Layer*> trace;
+    Layer* root = GetRoot(trace);
+    Layer* curLayer = root->assistant->GetLayer(Id);
+    if (curLayer)
+    {
+        foreach (Layer* layer, trace) {
+            if(!layer->assistant->GetLayer(Id))
+            {
+                layer->assistant->AddLayer(curLayer);
+            }//if
+        }//foreach
+        sublayers.append(curLayer);
+        curLayer->SetParentLayer(this);
+    }//if
 }
 
 void Layer::AddSublayer(Layer *Sublayer)
 {
-    Sublayer->SetParentLayer(this);
-    sublayers.append(Sublayer);
+    QVector<Layer*> trace;
+    Layer* root = GetRoot(trace);
+    if(!root->assistant->GetLayer(Sublayer->GetID()))
+        root->assistant->AddLayer(Sublayer);
+    AddSublayer(Sublayer->GetID());
 }
 
 void Layer::NewSublayer(idType Id, QString SublayerTitle, QString SublayerDescription)
 {
-    Layer* l = new Layer(Id, QVector<TimeSpan*>(0), QVector<Layer*>(0), this, SublayerTitle, SublayerDescription);
-    sublayers.append(l);
+    Layer* l = new Layer(Id, QVector<TimeSpan*>(0), QVector<Layer*>(0), 0, SublayerTitle, SublayerDescription);
+    AddSublayer(l);
+}
+
+void Layer::AddSublayers(QVector<idType> SublayersId)
+{
+    foreach (idType id, SublayersId) {
+        AddSublayer(id);
+    }
+}
+
+void Layer::AddSublayers(QVector<Layer *> SublayersPtr)
+{
+    foreach (Layer* pL, SublayersPtr) {
+        AddSublayer(pL);
+    }
 }
 
 void Layer::Serialize(QJsonObject &jsOb, int depth, Layer::typeOfSerialization ts)
@@ -420,4 +549,160 @@ void Layer::Deserialize(QJsonObject &jsOb, int depth, Layer::typeOfDeserializati
         lightRecursiveLayerDeserialization(jsOb, depth);
     if (td == Layer::HEAVY_DESERIALIZATION)
         heavyRecursiveLayerDeserialization(jsOb, depth);
+    assistant->Recount();
+    assistant->Repick();
 }
+
+/*********************************************
+LayerAssistant
+**********************************************/
+
+void LayerAssistant::recursiveDataGet(Layer *layer)
+{
+    AddLayer(layer);
+    for (int i = 0; i < layer->intervals.size(); ++i)
+        AddTimeSpan(layer->intervals[i]);
+    foreach (Layer* l, layer->sublayers) {
+        recursiveDataGet(l);
+    }
+}
+
+void LayerAssistant::recursiveDepthCount(Layer *layer)
+{
+    if (!layer)
+        return;
+    if (layer->sublayers.empty())
+    {
+        layer->assistant->maxDepth = 0;
+        return;
+    }
+    foreach (Layer* l, layer->sublayers) {
+        recursiveDepthCount(l);
+    }
+    layer->assistant->DepthCount(layer);
+}
+
+void LayerAssistant::DepthCount(Layer *layer)
+{
+    qint64 max = 0;
+    foreach (Layer* l, node->sublayers) {
+        if (l->assistant->maxDepth > max)
+            l->assistant->maxDepth = max;
+    }
+    layer->assistant->maxDepth = max + 1;
+}
+
+LayerAssistant::LayerAssistant(Layer *Node)
+{
+    node = Node;
+    //recursiveDataGet(node);
+    //recursiveDepthCount(node);
+}
+
+void LayerAssistant::Recount()
+{
+    recursiveDepthCount(node);
+}
+
+void LayerAssistant::Repick()
+{
+    recursiveDataGet(node);
+}
+
+qint64 LayerAssistant::GetMaxDepth()
+{
+    return maxDepth;
+}
+
+void LayerAssistant::AddLayer(Layer *layer)
+{
+    recursiveLayersMap.insert(layer->GetID(), layer);
+}
+
+void LayerAssistant::AddTimeSpan(TimeSpan *ts)
+{
+    recursiveTimeSpanMap.insert(ts->GetID(), ts);
+}
+
+void LayerAssistant::DeleteLayer(idType id)
+{
+    recursiveLayersMap.remove(id);
+}
+
+void LayerAssistant::DeleteTimeSpan(idType id)
+{
+    recursiveTimeSpanMap.remove(id);
+}
+
+Layer *LayerAssistant::GetLayer(idType id)
+{
+    if (recursiveLayersMap.contains(id))
+    {
+        return recursiveLayersMap.value(id);
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+TimeSpan *LayerAssistant::GetTimeSpan(idType id)
+{
+    if (recursiveTimeSpanMap.contains(id))
+    {
+        return recursiveTimeSpanMap.value(id);
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+QVector<Layer *> LayerAssistant::GetAllLayers()
+{
+    return recursiveLayersMap.values().toVector();
+}
+
+QVector<TimeSpan *> LayerAssistant::GetAllTimeSpans()
+{
+    return recursiveTimeSpanMap.values().toVector();
+}
+
+/*void LayerAssistant::Serialize(QJsonObject &jsOb)
+{
+    QJsonArray arrOfIntervals;
+    QJsonArray arrOfLayers;
+    foreach (idType t, recursiveTimeSpanMap.keys()) {
+        arrOfIntervals.append(t);
+    }
+    foreach (idType t, recursiveLayersMap.keys()) {
+        arrOfLayers.append(t);
+    }
+    jsOb["maxDepth"] = maxDepth;
+    jsOb["intervals"] = arrOfIntervals;
+    jsOb["layers"] = arrOfLayers;
+}
+
+void LayerAssistant::Deserialize(QJsonObject &jsOb)
+{
+    lightLayerDeserialization(jsOb);
+    if(!jsOb.contains("intervals") || !jsOb.contains("layers") || !jsOb.contains("maxDepth"))
+        return;
+    QJsonArray arrOfIntervals = jsOb["intervals"].toArray();
+    for (int i = 0; i < arrOfIntervals.size(); ++i)
+    {
+        QJsonObject ot = arrOfIntervals[i].toObject();
+        TimeSpan* t = new TimeSpan();
+        t->Deserialize(ot);
+        intervals.append(t);
+    }
+    QJsonArray arrOfIntervals = jsOb["intervals"].toArray();
+    for (int i = 0; i < arrOfIntervals.size(); ++i)
+    {
+        QJsonObject ot = arrOfIntervals[i].toObject();
+        TimeSpan* t = new TimeSpan();
+        t->Deserialize(ot);
+        intervals.append(t);
+    }
+}*/
+
