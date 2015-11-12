@@ -1,0 +1,45 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CrossPlatformEngine.Shared", "CrossPlatformEngine\CrossPlatformEngine.Shared\CrossPlatformEngine.Shared.vcxitems", "{1FF08C7F-924F-4AF4-B641-588952EBD6AE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CrossPlatformEngine.Android", "CrossPlatformEngine\CrossPlatformEngine.Android\CrossPlatformEngine.Android.vcxproj", "{AE272CC2-D3DF-4E0E-AC56-EAD5B5F06A20}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CrossPlatformEngine.iOS", "CrossPlatformEngine\CrossPlatformEngine.iOS\CrossPlatformEngine.iOS.vcxproj", "{E7707696-433F-4190-B70B-48F82C3230C0}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		CrossPlatformEngine\CrossPlatformEngine.Shared\CrossPlatformEngine.Shared.vcxitems*{ae272cc2-d3df-4e0e-ac56-ead5b5f06a20}*SharedItemsImports = 4
+		CrossPlatformEngine\CrossPlatformEngine.Shared\CrossPlatformEngine.Shared.vcxitems*{1ff08c7f-924f-4af4-b641-588952ebd6ae}*SharedItemsImports = 9
+		CrossPlatformEngine\CrossPlatformEngine.Shared\CrossPlatformEngine.Shared.vcxitems*{e7707696-433f-4190-b70b-48f82c3230c0}*SharedItemsImports = 4
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM = Debug|ARM
+		Debug|x86 = Debug|x86
+		Release|ARM = Release|ARM
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AE272CC2-D3DF-4E0E-AC56-EAD5B5F06A20}.Debug|ARM.ActiveCfg = Debug|ARM
+		{AE272CC2-D3DF-4E0E-AC56-EAD5B5F06A20}.Debug|ARM.Build.0 = Debug|ARM
+		{AE272CC2-D3DF-4E0E-AC56-EAD5B5F06A20}.Debug|x86.ActiveCfg = Debug|x86
+		{AE272CC2-D3DF-4E0E-AC56-EAD5B5F06A20}.Debug|x86.Build.0 = Debug|x86
+		{AE272CC2-D3DF-4E0E-AC56-EAD5B5F06A20}.Release|ARM.ActiveCfg = Release|ARM
+		{AE272CC2-D3DF-4E0E-AC56-EAD5B5F06A20}.Release|ARM.Build.0 = Release|ARM
+		{AE272CC2-D3DF-4E0E-AC56-EAD5B5F06A20}.Release|x86.ActiveCfg = Release|x86
+		{AE272CC2-D3DF-4E0E-AC56-EAD5B5F06A20}.Release|x86.Build.0 = Release|x86
+		{E7707696-433F-4190-B70B-48F82C3230C0}.Debug|ARM.ActiveCfg = Debug|ARM
+		{E7707696-433F-4190-B70B-48F82C3230C0}.Debug|ARM.Build.0 = Debug|ARM
+		{E7707696-433F-4190-B70B-48F82C3230C0}.Debug|x86.ActiveCfg = Debug|x86
+		{E7707696-433F-4190-B70B-48F82C3230C0}.Debug|x86.Build.0 = Debug|x86
+		{E7707696-433F-4190-B70B-48F82C3230C0}.Release|ARM.ActiveCfg = Release|ARM
+		{E7707696-433F-4190-B70B-48F82C3230C0}.Release|ARM.Build.0 = Release|ARM
+		{E7707696-433F-4190-B70B-48F82C3230C0}.Release|x86.ActiveCfg = Release|x86
+		{E7707696-433F-4190-B70B-48F82C3230C0}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
