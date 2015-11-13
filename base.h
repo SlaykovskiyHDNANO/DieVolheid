@@ -20,20 +20,20 @@ class LayerAssistant : public QObject
 
     Layer *node;
 
-    QMap <idType, Layer*> recursiveLayersMap;
-    QMap <idType, TimeSpan*> recursiveTimeSpanMap;
+    QMultiMap <idType, Layer*> recursiveLayersMap;
+    QMultiMap <idType, TimeSpan*> recursiveTimeSpanMap;
 
     qint64 maxDepth;
 
     void recursiveDataGet (Layer* layer);
     void recursiveDepthCount (Layer* layer);
-    void DepthCount (Layer* layer);
 
     LayerAssistant(const LayerAssistant&);
     LayerAssistant& operator= (const LayerAssistant&);
 public:
     LayerAssistant(Layer* Node);
     void Recount();
+    void DepthCount (Layer* layer);
     void Repick();
     qint64 GetMaxDepth();
     void AddLayer(Layer* layer);
@@ -77,7 +77,6 @@ class Layer : public QObject//слой
     void heavyRecursiveLayerSerialization(QJsonObject &jsOb, int curDepth);
     void heavyRecursiveLayerDeserialization(QJsonObject &jsOb, int curDepth);
     Layer* GetRoot(QVector<Layer*>& trace);
-
 
     Layer(const Layer&);
     Layer& operator= (const Layer&);

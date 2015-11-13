@@ -98,44 +98,36 @@ void TimeSpan::SetLayers(QVector<Layer *> Layers)
     this->layers = Layers;
 }
 
-void TimeSpan::AddLayer(idType Id)
-{
 
-}
 
 void TimeSpan::AddLayer(Layer *NewLayer)
 {
-    layers.append(NewLayer);
-}
-
-void TimeSpan::AddLayers(QVector<idType> LayersId)
-{
-
+    if(!layers.contains(NewLayer))
+        layers.append(NewLayer);
 }
 
 void TimeSpan::AddLayers(QVector<Layer *> LayersPtr)
 {
-
+    foreach (Layer *l, LayersPtr) {
+        AddLayer(l);
+    }
 }
 
-void TimeSpan::DeleteLayer(idType Id)
-{
 
-}
 
 void TimeSpan::DeleteLayer(Layer *DeletedLayer)
 {
-
+    if(layers.contains(DeletedLayer))
+        layers.removeOne(DeletedLayer);
 }
 
-void TimeSpan::DeleteLayers(QVector<idType> LayersId)
-{
 
-}
 
 void TimeSpan::DeleteLayers(QVector<Layer *> LayersPtr)
 {
-
+    foreach (Layer *l, LayersPtr) {
+        DeleteLayer(l);
+    }
 }
 
 void TimeSpan::Serialize(QJsonObject& jsOb)
@@ -405,9 +397,9 @@ Layer *Layer::GetParrentLayer()
 
 QVector<Layer *> Layer::GetSublayers(int MaxDepth)
 {
-    QVector<Layer *> watcherLayers;
-    straightSublayersWalk(watcherLayers, MaxDepth);
-    return watcherLayers;
+    //QVector<Layer *> watcherLayers;
+    //straightSublayersWalk(watcherLayers, MaxDepth);
+    return assistant->GetAllLayers();
 }
 
 QVector<TimeSpan *> Layer::GetAllIntervals()
@@ -447,15 +439,15 @@ void Layer::AddInterval(idType Id)
     TimeSpan* curSpn = root->assistant->GetTimeSpan(Id);
     if (curSpn)
     {
-        foreach (Layer* layer, trace) {
-            if(!layer->intervals.contains(layer->assistant->GetTimeSpan(Id)))
-            {
-                //layer->intervals.append(curSpn);
+        if(!this->intervals.contains(curSpn))
+        {
+            foreach (Layer* layer, trace) {
                 layer->assistant->AddTimeSpan(curSpn);
-            }//if
-        }//foreach
-        intervals.append(curSpn);
-        curSpn->AddLayer(this);
+            }//foreach
+            root->assistant->AddTimeSpan(curSpn);
+            intervals.append(curSpn);
+            curSpn->AddLayer(this);
+        }
     }//if
 }//fnc
 
@@ -463,9 +455,17 @@ void Layer::AddInterval(TimeSpan *Interval)
 {
     QVector<Layer*> trace;
     Layer* root = GetRoot(trace);
+    bool tmpEl = false;
     if(!root->assistant->GetTimeSpan(Interval->GetID()))
+    {
         root->assistant->AddTimeSpan(Interval);
+        tmpEl = true;
+    }
     AddInterval(Interval->GetID());
+    if(tmpEl)
+    {
+        root->assistant->DeleteTimeSpan(Interval->GetID());
+    }
 }
 
 void Layer::NewInterval(QDateTime Start, QDateTime End, QString IntervalTitle, QString IntervalDescription)
@@ -495,14 +495,27 @@ void Layer::AddSublayer(idType Id)
     Layer* curLayer = root->assistant->GetLayer(Id);
     if (curLayer)
     {
-        foreach (Layer* layer, trace) {
-            if(!layer->assistant->GetLayer(Id))
-            {
-                layer->assistant->AddLayer(curLayer);
-            }//if
-        }//foreach
-        sublayers.append(curLayer);
-        curLayer->SetParentLayer(this);
+        if(!this->sublayers.contains(curLayer))
+        {
+            sublayers.append(curLayer);
+            curLayer->SetParentLayer(this);
+
+            QVector<Layer*> recLrs = curLayer->GetSublayers(curLayer->assistant->GetMaxDepth());
+            QVector<TimeSpan*> recTs = curLayer->GetAllIntervals();
+            trace.append(root);
+            trace.removeOne(curLayer);
+            foreach (Layer* layer, trace) {
+                foreach (Layer* LayerToAdd, recLrs) {
+                    layer->assistant->AddLayer(LayerToAdd);
+                    layer->assistant->DepthCount(layer);
+                }
+                foreach (TimeSpan* TsToAdd, recTs) {
+                    layer->assistant->AddTimeSpan(TsToAdd);
+                }
+            }//foreach
+
+
+        }//if
     }//if
 }
 
@@ -510,9 +523,17 @@ void Layer::AddSublayer(Layer *Sublayer)
 {
     QVector<Layer*> trace;
     Layer* root = GetRoot(trace);
+    bool tmpLr = false;
     if(!root->assistant->GetLayer(Sublayer->GetID()))
+    {
+        tmpLr = true;
         root->assistant->AddLayer(Sublayer);
+    }
     AddSublayer(Sublayer->GetID());
+    if(tmpLr)
+    {
+        root->assistant->DeleteLayer(Sublayer->GetID());
+    }
 }
 
 void Layer::NewSublayer(idType Id, QString SublayerTitle, QString SublayerDescription)
@@ -533,6 +554,104 @@ void Layer::AddSublayers(QVector<Layer *> SublayersPtr)
     foreach (Layer* pL, SublayersPtr) {
         AddSublayer(pL);
     }
+}
+
+void Layer::DeleteInterval(idType Id)
+{
+    QVector<Layer*> trace;
+    Layer* root = GetRoot(trace);
+    TimeSpan* curSpn = root->assistant->GetTimeSpan(Id);
+    if (curSpn)
+    {
+        if(this->intervals.contains(curSpn))
+        {
+            foreach (Layer* layer, trace) {
+                layer->assistant->DeleteTimeSpan(curSpn->GetID());
+            }//foreach
+            intervals.removeOne(curSpn);
+            curSpn->DeleteLayer(this);
+            if(curSpn->GetLayers().isEmpty())
+                delete curSpn;
+        }
+    }//if
+}
+
+void Layer::DeleteInterval(TimeSpan *Interval)
+{
+    DeleteInterval(Interval->GetID());
+}
+
+void Layer::DeleteIntervals(QVector<idType> IntervalsId)
+{
+    foreach (idType i,IntervalsId) {
+        DeleteInterval(i);
+    }
+}
+
+void Layer::DeleteIntervals(QVector<TimeSpan *> IntervalsPtr)
+{
+    foreach (TimeSpan* ts, IntervalsPtr) {
+        DeleteInterval(ts);
+    }
+}
+
+void Layer::DeleteSublayer(idType Id)
+{
+    QVector<Layer*> trace;
+    Layer* root = GetRoot(trace);
+    Layer* curLayer = root->assistant->GetLayer(Id);
+    if (curLayer)
+    {
+        if(this->sublayers.contains(curLayer))
+        {
+            sublayers.removeOne(curLayer);
+
+            QVector<Layer*> recLrs = curLayer->GetSublayers(curLayer->assistant->GetMaxDepth());
+            QVector<TimeSpan*> recTs = curLayer->GetAllIntervals();
+            trace.append(root);
+            trace.removeOne(curLayer);
+            foreach (Layer* layer, trace) {
+                foreach (Layer* LayerToDelete, recLrs) {
+                    layer->assistant->DeleteLayer(LayerToDelete->GetID());
+                    layer->assistant->DepthCount(layer);
+                }
+                foreach (TimeSpan* TsToDelete, recTs) {
+                    layer->assistant->DeleteTimeSpan(TsToDelete->GetID());
+                }
+            }//foreach
+
+            curLayer->Clear();
+
+        }//if
+    }//if
+}
+
+void Layer::DeleteSublayer(Layer *Sublayer)
+{
+    DeleteSublayer(Sublayer->GetID());
+}
+
+void Layer::DeleteSublayers(QVector<idType> SublayersId)
+{
+    foreach (idType i, SublayersId) {
+        DeleteSublayer(i);
+    }
+}
+
+void Layer::DeleteSublayers(QVector<Layer *> SublayersPtr)
+{
+    foreach (Layer* l, SublayersPtr) {
+        DeleteSublayer(l);
+    }
+}
+
+void Layer::Clear()
+{
+    foreach (Layer* l, sublayers) {
+        l->Clear();
+    }
+    delete assistant;
+    delete this;
 }
 
 void Layer::Serialize(QJsonObject &jsOb, int depth, Layer::typeOfSerialization ts)
@@ -559,6 +678,8 @@ LayerAssistant
 
 void LayerAssistant::recursiveDataGet(Layer *layer)
 {
+    recursiveLayersMap.clear();
+    recursiveTimeSpanMap.clear();
     AddLayer(layer);
     for (int i = 0; i < layer->intervals.size(); ++i)
         AddTimeSpan(layer->intervals[i]);
@@ -587,7 +708,7 @@ void LayerAssistant::DepthCount(Layer *layer)
     qint64 max = 0;
     foreach (Layer* l, node->sublayers) {
         if (l->assistant->maxDepth > max)
-            l->assistant->maxDepth = max;
+            max = l->assistant->maxDepth;
     }
     layer->assistant->maxDepth = max + 1;
 }
@@ -626,12 +747,14 @@ void LayerAssistant::AddTimeSpan(TimeSpan *ts)
 
 void LayerAssistant::DeleteLayer(idType id)
 {
-    recursiveLayersMap.remove(id);
+    QMultiMap <idType, Layer*>::iterator it = recursiveLayersMap.find(id);
+    recursiveLayersMap.erase(it);
 }
 
 void LayerAssistant::DeleteTimeSpan(idType id)
 {
-    recursiveTimeSpanMap.remove(id);
+    QMultiMap <idType, TimeSpan*>::iterator it = recursiveTimeSpanMap.find(id);
+    recursiveTimeSpanMap.erase(it);
 }
 
 Layer *LayerAssistant::GetLayer(idType id)
@@ -660,12 +783,12 @@ TimeSpan *LayerAssistant::GetTimeSpan(idType id)
 
 QVector<Layer *> LayerAssistant::GetAllLayers()
 {
-    return recursiveLayersMap.values().toVector();
+   return recursiveLayersMap.values().toSet().toList().toVector(); //без повторений
 }
 
 QVector<TimeSpan *> LayerAssistant::GetAllTimeSpans()
 {
-    return recursiveTimeSpanMap.values().toVector();
+    return recursiveTimeSpanMap.values().toSet().toList().toVector(); //без повторений
 }
 
 /*void LayerAssistant::Serialize(QJsonObject &jsOb)

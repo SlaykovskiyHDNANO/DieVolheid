@@ -1,4 +1,7 @@
 #include <QCoreApplication>
+#include <QVector>
+#include <QMultiMap>
+#include <QSet>
 #include "base.h"
 
 void test1();
@@ -14,6 +17,16 @@ int main(int argc, char *argv[])
 
 void test2()
 {
+    QMultiMap<QString, quint8> qm;
+    qm.insert("123", 5);
+    qm.insert("234", 6);
+    qm.insert("234", 5);
+    qm.insert("123", 5);
+    qm.insert("123", 5);
+    QMultiMap<QString, quint8>::iterator it = qm.find("123");
+    qm.erase(it);
+    QVector<quint8> v = qm.values().toSet().toList().toVector();
+
     Layer* l1 = new Layer("12345" , QVector<TimeSpan*>(), QVector<Layer*>(0), 0, "root", "im a root");
     Layer* l2 = new Layer("123456" , QVector<TimeSpan*>(), QVector<Layer*>(0), 0, "son", "im a son");
     l1->AddSublayer(l2);
