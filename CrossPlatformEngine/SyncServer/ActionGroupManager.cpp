@@ -1,6 +1,6 @@
 #include "ActionGroupManager.hpp"
-#include "FindSimilar\FindSimilar.h"
-#include "Preprocessor.hpp"
+/*#include "FindSimilar\FindSimilar.h"*/
+/*#include "Preprocessor.hpp"*/
 #include "server.hpp"
 #include "utils\threading.hpp"
 
@@ -102,19 +102,19 @@ bool ActionGroupManager::ManagerFunction(ActionGroupManager* thiss)
 		else if (msg_params["action_name"].asString() == "post.preprocess" || msg_params["action_name"].asString() == "post.findsimilars"){
 			ThreadActionHandlerParam* par = new ThreadActionHandlerParam();
 			(*thiss->locker).lock();
-			par->accessor = &http::server::server::db_manager.GetAccessor();
+//			par->accessor = &http::server::server::db_manager.GetAccessor();
 			(*thiss->locker).unlock();
 			par->daddy = thiss;
 			par->params = thiss->msg_params;
 			par->ResultQueue = &thiss->ResultQueue;
 			IActionHandler* action;
-			if (msg_params["action_name"].asString() == "post.findsimilars")
-				action = new FindSimilar();
-			else
-				action = new Preprocessor();
+//			if (msg_params["action_name"].asString() == "post.findsimilars")
+//				action = new FindSimilar();
+//			else
+//				action = new Preprocessor();
 			
 			auto thr = new thread([](IActionHandler* action, ThreadActionHandlerParam* par)->bool{
-				action->Run(par->params, *par->accessor, *par->ResultQueue/*, true*/);	//true для бинарного поиска, false для линейного
+//				action->Run(par->params, *par->accessor, *par->ResultQueue/*, true*/);	//true для бинарного поиска, false для линейного
 				return true;
 			}, action, par);
 			thiss->active_handlers.insert(std::make_pair(action,thr));

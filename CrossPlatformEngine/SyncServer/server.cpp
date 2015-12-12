@@ -7,7 +7,7 @@
 namespace http {
 	namespace server {
 
-		DBConnectorManager server::db_manager("solvex", "backend", "backendbackend", 2, false);
+		/*DBConnectorManager server::db_manager("solvex", "backend", "backendbackend", 2, false);*/
 		std::vector<std::shared_ptr<ActionGroupManager>> server::ActionGroupList		=	std::vector<std::shared_ptr<ActionGroupManager>>();
 		std::vector<std::shared_ptr<ReplySender>>		 server::ReplySenders			=	std::vector<std::shared_ptr<ReplySender>>();
 

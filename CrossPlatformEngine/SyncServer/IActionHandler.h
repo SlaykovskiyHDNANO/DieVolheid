@@ -5,9 +5,9 @@
 #include <map>
 #include <string>
 #include <exception>
-#include "DBConnector.hpp"
-#include"JSON/json-forwards.h"
-#include"JSON/json.h"
+//#include "DBConnector.hpp"
+#include <JSON\json\json-forwards.h>
+#include <JSON/json/json.h>
 #include "utils\threading.hpp"
 
 using namespace std;
@@ -42,7 +42,7 @@ class IActionHandler
 {
 public:
 		
-	virtual void Run(const Json::Value &data, DBConnectorAccessor &DB, utils::threading::ThreadMessageQueue<Json::Value>& queue) = 0;
+	virtual void Run(const Json::Value &data, /*DBConnectorAccessor &DB,*/ utils::threading::ThreadMessageQueue<Json::Value>& queue) = 0;
 	virtual bool Shutdown()=0;
 	virtual ActionResult* GetResult()=0;
 	virtual bool CanGracefullyShutdown()=0;

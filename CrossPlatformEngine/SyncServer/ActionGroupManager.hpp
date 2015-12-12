@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <thread>
-#include "DBConnector.hpp"
+//#include "DBConnector.hpp"
 #include "IActionHandler.h"
 #include "utils\threading.hpp"
 #include "JSON\json\json.h"
@@ -28,7 +28,7 @@ class ActionGroupManager;
 
 struct ThreadActionHandlerParam {
 	ActionGroupManager* daddy;
-	DBConnectorAccessor* accessor;
+	/*DBConnectorAccessor* accessor;*/
 	Json::Value params;
 	utils::threading::ThreadMessageQueue<Json::Value>* ResultQueue;
 

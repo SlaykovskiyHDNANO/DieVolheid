@@ -3,9 +3,9 @@
 #include <vector>
 #include <algorithm>
 #include <boost/bind.hpp>
-#include "byte_swaper.hpp"
-#include <json\json.h>
-#include "Logger.h"
+//#include "byte_swaper.hpp"
+#include <json\json\json.h>
+#include "utils\Logger.h"
 
 namespace http {
 	namespace server {

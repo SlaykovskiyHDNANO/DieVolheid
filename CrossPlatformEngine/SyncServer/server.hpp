@@ -11,7 +11,7 @@
 #include <boost/shared_ptr.hpp>
 #include "connection.hpp"
 #include "ActionGroupManager.hpp"
-#include "DBConnector.hpp"
+//#include "DBConnector.hpp"
 #include <memory>
 
 namespace http {
@@ -28,7 +28,7 @@ namespace http {
 			
 			
 			static std::vector<std::shared_ptr<ActionGroupManager>> ActionGroupList;
-			static DBConnectorManager db_manager;
+			/*static DBConnectorManager db_manager;*/
 			static std::vector<std::shared_ptr<ReplySender>> ReplySenders;
 			static const boost::asio::ip::tcp::endpoint frontend_endpoint;
 			/// Run the server's io_service loop.
