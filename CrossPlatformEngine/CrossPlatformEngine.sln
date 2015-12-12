@@ -1,15 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SyncServer", "SyncServer\SyncServer.vcxproj", "{9BFE6EC6-0DA1-408A-BE49-DE36C7B1ACA1}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SyncClient", "SyncClient\SyncClient.vcxproj", "{B12702AD-ABFB-343A-A199-8E24837244A3}"
 EndProject
+<<<<<<< HEAD
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Utils", "Utils\Utils.vcxitems", "{45D41ACC-2C3C-43D2-BC10-02AA73FFC7C7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QTConsoleMain", "QTConsoleMain\QTConsoleMain.vcxproj", "{7AB8B4F2-B6AA-4515-B246-7F2B2FCC1AE6}"
+=======
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MainConsole", "MainConsole\MainConsole.vcxproj", "{43A526AF-ED34-4DD5-8D66-B41B69BC249C}"
+>>>>>>> origin/master
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +45,7 @@ Global
 		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|x64.Build.0 = Release|x64
 		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|x86.ActiveCfg = Release|Win32
 		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|x86.Build.0 = Release|Win32
+<<<<<<< HEAD
 		{7AB8B4F2-B6AA-4515-B246-7F2B2FCC1AE6}.Debug|ARM.ActiveCfg = Debug|Win32
 		{7AB8B4F2-B6AA-4515-B246-7F2B2FCC1AE6}.Debug|x64.ActiveCfg = Debug|x64
 		{7AB8B4F2-B6AA-4515-B246-7F2B2FCC1AE6}.Debug|x64.Build.0 = Debug|x64
@@ -51,6 +56,18 @@ Global
 		{7AB8B4F2-B6AA-4515-B246-7F2B2FCC1AE6}.Release|x64.Build.0 = Release|x64
 		{7AB8B4F2-B6AA-4515-B246-7F2B2FCC1AE6}.Release|x86.ActiveCfg = Release|Win32
 		{7AB8B4F2-B6AA-4515-B246-7F2B2FCC1AE6}.Release|x86.Build.0 = Release|Win32
+=======
+		{43A526AF-ED34-4DD5-8D66-B41B69BC249C}.Debug|ARM.ActiveCfg = Debug|Win32
+		{43A526AF-ED34-4DD5-8D66-B41B69BC249C}.Debug|x64.ActiveCfg = Debug|x64
+		{43A526AF-ED34-4DD5-8D66-B41B69BC249C}.Debug|x64.Build.0 = Debug|x64
+		{43A526AF-ED34-4DD5-8D66-B41B69BC249C}.Debug|x86.ActiveCfg = Debug|Win32
+		{43A526AF-ED34-4DD5-8D66-B41B69BC249C}.Debug|x86.Build.0 = Debug|Win32
+		{43A526AF-ED34-4DD5-8D66-B41B69BC249C}.Release|ARM.ActiveCfg = Release|Win32
+		{43A526AF-ED34-4DD5-8D66-B41B69BC249C}.Release|x64.ActiveCfg = Release|x64
+		{43A526AF-ED34-4DD5-8D66-B41B69BC249C}.Release|x64.Build.0 = Release|x64
+		{43A526AF-ED34-4DD5-8D66-B41B69BC249C}.Release|x86.ActiveCfg = Release|Win32
+		{43A526AF-ED34-4DD5-8D66-B41B69BC249C}.Release|x86.Build.0 = Release|Win32
+>>>>>>> origin/master
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
